@@ -6,399 +6,83 @@
       name="viewport"
       content="width=device-width, initial-scale=1, user-scalable=no"
     />
-    <title>Binary Addition</title>
+    <title>Binary Addition Game</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
     />
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
-      }
-
-      body {
-        background: linear-gradient(135deg, #2d2a2e 0%, #221f22 100%);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        touch-action: none;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .game-container {
-        background: rgba(45, 42, 46, 0.95);
-        backdrop-filter: blur(10px);
-        border: 1px solid #5b595c;
-        border-radius: 20px;
-        padding: 1.5rem;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        max-width: 600px;
-        width: 100%;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 1rem;
-      }
-
-      h1 {
-        font-size: 1.75rem;
-        margin-bottom: 1rem;
-        color: #fcfcfa;
-        font-weight: 700;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      }
-
-      .target {
-        font-size: 1.3rem;
-        margin: 1rem 0;
-        color: #fcfcfa;
-        font-weight: 600;
-      }
-
-      #target-number {
-        color: #ff6188;
-        font-weight: 700;
-        font-size: 1.6rem;
-        text-shadow: 0 0 10px rgba(255, 97, 136, 0.3);
-      }
-
-      .mode-toggle {
-        margin-bottom: 1.5rem;
-      }
-
-      .mode-toggle label {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        font-weight: 500;
-        color: #939293;
-        font-size: 0.9rem;
-        padding: 0.5rem;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .mode-toggle input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        accent-color: #ab9df2;
-        cursor: pointer;
-      }
-
-      #trail-canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 10;
-      }
-
-      .bits {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.5rem;
-        margin: 1.5rem 0;
-        user-select: none;
-      }
-
-      .bits button {
-        padding: 1rem 0.25rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        font-family: inherit;
-        border: 2px solid #5b595c;
-        border-radius: 12px;
-        background: linear-gradient(145deg, #403e41, #2d2a2e);
-        color: #fcfcfa;
-        touch-action: none;
-        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        min-height: 60px;
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-      }
-
-      .bits button::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(252, 252, 250, 0.1),
-          transparent
-        );
-        transition: left 0.5s;
-      }
-
-      .bits button:hover::before {
-        left: 100%;
-      }
-
-      .bits button:active {
-        transform: scale(0.95);
-      }
-
-      .bits button.active {
-        background: linear-gradient(145deg, #ab9df2, #a9dc76);
-        color: #2d2a2e;
-        border-color: #ab9df2;
-        transform: scale(0.95);
-        box-shadow:
-          inset 0 2px 8px rgba(0, 0, 0, 0.2),
-          0 0 20px rgba(171, 157, 242, 0.3);
-      }
-
-      .bits button.hover-on {
-        border-color: #a9dc76;
-        background: linear-gradient(145deg, #403e41, #2d2a2e);
-        box-shadow: 0 0 15px rgba(169, 220, 118, 0.4);
-        transform: scale(1.05);
-      }
-
-      .bits button.hover-off {
-        border-color: #ff6188;
-        background: linear-gradient(145deg, #403e41, #2d2a2e);
-        box-shadow: 0 0 15px rgba(255, 97, 136, 0.4);
-        transform: scale(0.9);
-      }
-
-      @media (min-width: 600px) {
-        .game-container {
-          padding: 2rem;
-        }
-
-        h1 {
-          font-size: 2rem;
-        }
-
-        .target {
-          font-size: 1.5rem;
-        }
-
-        #target-number {
-          font-size: 1.8rem;
-        }
-
-        .bits {
-          grid-template-columns: repeat(8, 1fr);
-          gap: 0.5rem;
-          margin: 2rem 0;
-        }
-
-        .bits button {
-          padding: 1.2rem 0.5rem;
-          font-size: 1.1rem;
-          min-height: auto;
-        }
-      }
-
-      .sum {
-        font-size: 1.2rem;
-        margin: 1rem 0;
-        color: #fcfcfa;
-        font-weight: 600;
-      }
-
-      #current-sum {
-        color: #a9dc76;
-        font-weight: 700;
-        font-size: 1.4rem;
-        text-shadow: 0 0 10px rgba(169, 220, 118, 0.3);
-      }
-
-      .controls {
-        margin: 1.5rem 0 1rem;
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-
-      .controls button {
-        padding: 1rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-        font-family: inherit;
-        border: 2px solid transparent;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        min-height: 50px;
-        min-width: 120px;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-      }
-
-      #check-btn {
-        background: linear-gradient(145deg, #a9dc76, #78dce8);
-        color: #2d2a2e;
-        border-color: #a9dc76;
-      }
-
-      #next-btn {
-        background: linear-gradient(145deg, #78dce8, #ab9df2);
-        color: #2d2a2e;
-        border-color: #78dce8;
-      }
-
-      .controls button:disabled {
-        background: #5b595c;
-        color: #727072;
-        cursor: not-allowed;
-        border-color: #5b595c;
-      }
-
-      .controls button:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-      }
-
-      .controls button:active:not(:disabled) {
-        transform: scale(0.95);
-      }
-
-      @media (max-width: 599px) {
-        .controls button {
-          padding: 1.2rem 1.5rem;
-          font-size: 1.1rem;
-          min-height: 55px;
-        }
-
-        .controls button:active:not(:disabled) {
-          transform: scale(0.95);
-          background-size: 110%;
-        }
-      }
-
-      .feedback {
-        height: 2rem;
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-top: 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-      }
-
-      .feedback.correct {
-        color: #a9dc76;
-        text-shadow: 0 0 10px rgba(169, 220, 118, 0.3);
-      }
-
-      .feedback.incorrect {
-        color: #ff6188;
-        text-shadow: 0 0 10px rgba(255, 97, 136, 0.3);
-      }
-
-      .instructions {
-        font-size: 0.8rem;
-        color: #939293;
-        padding: 1rem;
-        background: rgba(45, 42, 46, 0.8);
-        border: 1px solid #5b595c;
-        border-radius: 12px;
-        line-height: 1.4;
-        max-width: 600px;
-        width: 100%;
-        text-align: center;
-        backdrop-filter: blur(5px);
-      }
-
-      .game-container.hard .sum {
-        visibility: hidden;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-      }
-
-      .pulse {
-        animation: pulse 0.4s ease-in-out;
-      }
-
-      @keyframes fadeOut {
-        0% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-        }
-      }
-
-      .fade-out {
-        animation: fadeOut 2s ease-out forwards;
-      }
-
-      .drag-indicator {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 0.8rem;
-        color: #939293;
-        background: rgba(45, 42, 46, 0.9);
-        padding: 0.5rem;
-        border-radius: 6px;
-        border: 1px solid #5b595c;
-        opacity: 0;
-        transition: opacity 0.2s;
-        z-index: 20;
-      }
-
-      .drag-indicator.show {
-        opacity: 1;
-      }
-
-      @media (max-width: 599px) {
-        .instructions {
-          font-size: 0.75rem;
-          padding: 0.75rem;
-        }
-
-        .drag-indicator {
-          top: 5px;
-          right: 5px;
-          font-size: 0.7rem;
-          padding: 0.25rem 0.5rem;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="game-navbar-header">
+      <h1 id="main-title">Binary Addition Game</h1>
+      <div class="navbar-right-section">
+        <button class="hamburger-menu-icon" id="hamburger-menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+      <div class="settings-menu-content" id="settings-menu-content">
+        <div class="difficulty-selection">
+          <label>
+            <input type="radio" name="difficulty" value="easy" checked />
+            <span>Easy (15s)</span>
+          </label>
+          <label>
+            <input type="radio" name="difficulty" value="normal" />
+            <span>Normal (10s)</span>
+          </label>
+          <label>
+            <input type="radio" name="difficulty" value="hard" />
+            <span>Hard (5s)</span>
+          </label>
+          <label>
+            <input type="radio" name="difficulty" value="god" />
+            <span>10xEngineer (3s)</span>
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="difficulty"
+              value="custom"
+              id="custom-radio"
+            />
+            <span>Custom</span>
+            <input
+              type="number"
+              id="custom-time-input"
+              min="1"
+              max="60"
+              value="10"
+              disabled
+            />
+            <span>s</span>
+          </label>
+        </div>
+        <p class="mode-toggle">
+          <label title="Hide the sum and use your brain!">
+            <input type="checkbox" id="hard-mode" />
+            <span id="mode-label">Enable cortical memory (volatile)</span>
+          </label>
+        </p>
+      </div>
+    </div>
     <div class="game-container">
-      <h1>Binary Addition</h1>
+      <div class="start-screen" id="start-screen">
+        <h2>Welcome to Binary Addition!</h2>
+        <p
+          >Test your skills in converting binary to decimal. Select your
+          difficulty and start.</p
+        >
+        <button id="start-button">Start Game</button>
+      </div>
+
+      <div class="timer-bar-container">
+        <div id="timer-bar"></div>
+      </div>
+
       <p class="target">Target: <span id="target-number">0</span></p>
-      <p class="mode-toggle">
-        <label>
-          <input type="checkbox" id="hard-mode" />
-          Hard Mode (Hide Sum)
-        </label>
-      </p>
 
       <canvas id="trail-canvas"></canvas>
 
@@ -408,441 +92,46 @@
 
       <p class="sum">Your Sum: <span id="current-sum">0</span></p>
       <div class="controls">
-        <button id="check-btn">Check Answer</button>
-        <button id="next-btn">Next Question</button>
+        <button id="check-btn" disabled>Check Answer</button>
+        <button id="next-btn" disabled>Next Question</button>
       </div>
+      <div class="stats-container">
+        <div class="stat correct-count" title="Correct Answers">
+          ✅ <span id="correct-count">0</span>
+        </div>
+        <div class="stat incorrect-count" title="Incorrect Answers">
+          ❌ <span id="incorrect-count">0</span>
+        </div>
+        <div class="stat streak-count" title="Current Streak">
+          🔥 <span id="streak-count">0</span>
+        </div>
+      </div>
+
       <p class="feedback" id="feedback"></p>
     </div>
 
-    <div class="instructions">
-      <strong>Mouse:</strong> Click buttons to toggle •
-      <strong>Touch:</strong> Tap to toggle or drag left-to-right to turn ON,
-      right-to-left to turn OFF • <strong>Keyboard:</strong> Press 1-8 to
-      toggle bits, <strong>Enter</strong> to Check Answer,
-      <strong>Space</strong> for Next Question
-    </div>
-
-    <script>
-      const bitValues = [128, 64, 32, 16, 8, 4, 2, 1];
-      let target = 0;
-      let currentSum = 0;
-      let isDragging = false;
-      let dragStartPos = null;
-      let currentButton = null;
-      let lastButton = null;
-      let dragHistory = [];
-      let dragDirection = null;
-      let touchStartTime = 0;
-      let isMouseInteraction = false;
-
-      const container = document.querySelector(".game-container");
-      const bits = document.querySelector(".bits");
-      const targetEl = document.getElementById("target-number");
-      const sumEl = document.getElementById("current-sum");
-      const feedback = document.getElementById("feedback");
-      const checkBtn = document.getElementById("check-btn");
-      const nextBtn = document.getElementById("next-btn");
-      const hardMode = document.getElementById("hard-mode");
-      const canvas = document.getElementById("trail-canvas");
-      const ctx = canvas.getContext("2d");
-      const dragIndicator = document.getElementById("drag-indicator");
-
-      let fadeTimeout = null;
-
-      const resizeCanvas = () => {
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-      };
-      resizeCanvas();
-      window.addEventListener("resize", resizeCanvas);
-
-      const toCanvas = (x, y) => {
-        const rect = canvas.getBoundingClientRect();
-        return { x: x - rect.left, y: y - rect.top };
-      };
-
-      let trailPoints = [];
-      const maxTrailPoints = 30;
-
-      const addTrailPoint = (x, y) => {
-        const point = toCanvas(x, y);
-        trailPoints.push({ ...point, timestamp: Date.now() });
-        if (trailPoints.length > maxTrailPoints) {
-          trailPoints.shift();
-        }
-        drawTrail();
-      };
-
-      const drawTrail = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        if (trailPoints.length < 2) return;
-
-        const now = Date.now();
-
-        for (let i = 1; i < trailPoints.length; i++) {
-          const prev = trailPoints[i - 1];
-          const curr = trailPoints[i];
-
-          const age = now - curr.timestamp;
-          const opacity = Math.max(0, 1 - age / 2000);
-
-          if (opacity <= 0) continue;
-
-          const progress = i / trailPoints.length;
-          const width = 2 + progress * 4;
-
-          ctx.beginPath();
-          ctx.moveTo(prev.x, prev.y);
-          ctx.lineTo(curr.x, curr.y);
-          ctx.lineWidth = width;
-
-          const color =
-            dragDirection === "left-to-right"
-              ? `rgba(169, 220, 118, ${opacity})`
-              : `rgba(255, 97, 136, ${opacity})`;
-
-          ctx.strokeStyle = color;
-          ctx.stroke();
-        }
-      };
-
-      const startTrailFade = () => {
-        if (fadeTimeout) clearTimeout(fadeTimeout);
-
-        const fadeTrail = () => {
-          const now = Date.now();
-          trailPoints = trailPoints.filter(
-            (point) => now - point.timestamp < 2000,
-          );
-
-          if (trailPoints.length > 0) {
-            drawTrail();
-            fadeTimeout = setTimeout(fadeTrail, 50);
-          } else {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-          }
-        };
-
-        fadeTimeout = setTimeout(fadeTrail, 50);
-      };
-
-      const toggle = (btn) => {
-        btn.classList.toggle("active");
-        btn.classList.add("pulse");
-        setTimeout(() => btn.classList.remove("pulse"), 400);
-        updateSum();
-      };
-
-      const updateSum = () => {
-        currentSum = Array.from(bits.querySelectorAll("button.active")).reduce(
-          (sum, btn) => sum + parseInt(btn.dataset.value),
-          0,
-        );
-        sumEl.textContent = currentSum;
-        sumEl.classList.add("pulse");
-        setTimeout(() => sumEl.classList.remove("pulse"), 300);
-      };
-
-      const getButtonAt = (x, y) => {
-        const element = document.elementFromPoint(x, y);
-        if (element && element.tagName === "BUTTON" && bits.contains(element)) {
-          return element;
-        }
-
-        const offsets = [-10, 10, -20, 20];
-        for (let dx of offsets) {
-          for (let dy of offsets) {
-            const el = document.elementFromPoint(x + dx, y + dy);
-            if (el && el.tagName === "BUTTON" && bits.contains(el)) {
-              return el;
-            }
-          }
-        }
-
-        return null;
-      };
-
-      const detectDragDirection = (currentPos) => {
-        if (!dragStartPos || trailPoints.length < 2) return null;
-
-        const deltaX = currentPos.x - dragStartPos.x;
-        const threshold = isMouseInteraction ? 20 : 15;
-
-        if (Math.abs(deltaX) < threshold) return null;
-
-        return deltaX > 0 ? "left-to-right" : "right-to-left";
-      };
-
-      const updateDragIndicator = (direction) => {
-        if (direction === "left-to-right") {
-          dragIndicator.textContent = "→ ON";
-          dragIndicator.style.color = "#a9dc76";
-        } else if (direction === "right-to-left") {
-          dragIndicator.textContent = "← OFF";
-          dragIndicator.style.color = "#ff6188";
-        }
-        dragIndicator.classList.add("show");
-      };
-
-      const clearHoverStates = () => {
-        bits.querySelectorAll("button").forEach((btn) => {
-          btn.classList.remove("hover-on", "hover-off");
-        });
-      };
-
-      const newQuestion = () => {
-        target = Math.floor(Math.random() * 256);
-        targetEl.textContent = target;
-        targetEl.classList.add("pulse");
-        setTimeout(() => targetEl.classList.remove("pulse"), 400);
-
-        bits.querySelectorAll("button").forEach((btn) => {
-          btn.classList.remove("active", "hover-on", "hover-off");
-        });
-        currentSum = 0;
-        sumEl.textContent = 0;
-        feedback.textContent = "";
-        feedback.className = "feedback";
-        checkBtn.disabled = false;
-      };
-
-      bitValues.forEach((value, index) => {
-        const btn = document.createElement("button");
-        btn.textContent = value;
-        btn.dataset.value = value;
-        btn.dataset.index = index;
-
-        btn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          if (!isDragging) {
-            toggle(btn);
-          }
-        });
-
-        btn.addEventListener("mouseenter", () => {
-          if (!isDragging && !("ontouchstart" in window)) {
-            btn.classList.add("hover-on");
-          }
-        });
-
-        btn.addEventListener("mouseleave", () => {
-          if (!isDragging) {
-            btn.classList.remove("hover-on", "hover-off");
-          }
-        });
-
-        bits.appendChild(btn);
-      });
-
-      const startDrag = (x, y, isMouse = false) => {
-        isDragging = true;
-        isMouseInteraction = isMouse;
-        dragStartPos = { x, y };
-        currentButton = getButtonAt(x, y);
-        lastButton = currentButton;
-        dragHistory = [];
-        dragDirection = null;
-        touchStartTime = Date.now();
-
-        trailPoints = [];
-        addTrailPoint(x, y);
-        dragIndicator.classList.remove("show");
-      };
-
-      const continueDrag = (x, y) => {
-        if (!isDragging) return;
-
-        addTrailPoint(x, y);
-
-        const btn = getButtonAt(x, y);
-        const currentPos = { x, y };
-
-        const newDirection = detectDragDirection(currentPos);
-        if (newDirection && newDirection !== dragDirection) {
-          dragDirection = newDirection;
-          updateDragIndicator(dragDirection);
-        }
-
-        clearHoverStates();
-
-        if (btn && btn !== lastButton && dragDirection) {
-          if (dragDirection === "left-to-right") {
-            if (!btn.classList.contains("active")) {
-              toggle(btn);
-              dragHistory.push(btn);
-            }
-          } else if (dragDirection === "right-to-left") {
-            if (btn.classList.contains("active")) {
-              toggle(btn);
-              const historyIndex = dragHistory.indexOf(btn);
-              if (historyIndex > -1) {
-                dragHistory.splice(historyIndex, 1);
-              }
-            }
-          }
-          lastButton = btn;
-        }
-
-        if (btn && dragDirection) {
-          if (dragDirection === "left-to-right") {
-            if (!btn.classList.contains("active")) {
-              btn.classList.add("hover-on");
-            }
-          } else if (dragDirection === "right-to-left") {
-            if (btn.classList.contains("active")) {
-              btn.classList.add("hover-off");
-            }
-          }
-        }
-
-        currentButton = btn;
-      };
-
-      const endDrag = (x, y) => {
-        if (!isDragging) return;
-
-        const interactionDuration = Date.now() - touchStartTime;
-        const btn = getButtonAt(x, y);
-
-        if (
-          interactionDuration < 200 &&
-          btn &&
-          btn === currentButton &&
-          trailPoints.length < 3
-        ) {
-          toggle(btn);
-        }
-
-        isDragging = false;
-        isMouseInteraction = false;
-        dragStartPos = null;
-        currentButton = null;
-        lastButton = null;
-        dragHistory = [];
-        dragDirection = null;
-        clearHoverStates();
-        dragIndicator.classList.remove("show");
-
-        startTrailFade();
-      };
-
-      container.addEventListener("mousedown", (e) => {
-        if (e.button === 0) {
-          e.preventDefault();
-          startDrag(e.clientX, e.clientY, true);
-        }
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if (isDragging && isMouseInteraction) {
-          e.preventDefault();
-          continueDrag(e.clientX, e.clientY);
-        }
-      });
-
-      document.addEventListener("mouseup", (e) => {
-        if (isDragging && isMouseInteraction) {
-          endDrag(e.clientX, e.clientY);
-        }
-      });
-
-      container.addEventListener(
-        "touchstart",
-        (e) => {
-          e.preventDefault();
-          const touch = e.touches[0];
-          startDrag(touch.clientX, touch.clientY, false);
-        },
-        { passive: false },
-      );
-
-      container.addEventListener(
-        "touchmove",
-        (e) => {
-          if (isDragging && !isMouseInteraction) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            continueDrag(touch.clientX, touch.clientY);
-          }
-        },
-        { passive: false },
-      );
-
-      container.addEventListener(
-        "touchend",
-        (e) => {
-          if (isDragging && !isMouseInteraction) {
-            e.preventDefault();
-            const touch = e.changedTouches[0];
-            endDrag(touch.clientX, touch.clientY);
-          }
-        },
-        { passive: false },
-      );
-
-      checkBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (checkBtn.disabled) return;
-
-        const isCorrect = currentSum === target;
-        feedback.textContent = isCorrect
-          ? "Correct!"
-          : `Wrong! You got ${currentSum}, target was ${target}`;
-        feedback.className = `feedback ${isCorrect ? "correct" : "incorrect"}`;
-        checkBtn.disabled = true;
-
-        if (isCorrect) {
-          bits.querySelectorAll("button.active").forEach((btn, index) => {
-            setTimeout(() => btn.classList.add("pulse"), index * 100);
-          });
-        }
-      });
-
-      nextBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        newQuestion();
-      });
-
-      hardMode.addEventListener("change", () => {
-        container.classList.toggle("hard", hardMode.checked);
-      });
-
-      container.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (e.key >= "1" && e.key <= "8") {
-          const index = parseInt(e.key) - 1;
-          const btn = bits.children[index];
-          if (btn) {
-            toggle(btn);
-          }
-        } else if (e.key === "Enter") {
-          if (!checkBtn.disabled) {
-            checkBtn.click();
-          }
-        } else if (e.key === " ") {
-          e.preventDefault();
-          nextBtn.click();
-        }
-      });
-
-      newQuestion();
-    </script>
-    <script
-      src="https://code.jquery.com/pep/0.4.3/pep.min.js"
-      integrity="sha256-ibZWIASZ948myvthXu3qCoTOg8bnJzjMJoYZz1RPg6E="
-      crossorigin="anonymous"
-    ></script>
+    <footer>
+      <dl class="instructions">
+        <div>
+          <dt>Mouse</dt>
+          <dd>Click buttons to toggle</dd>
+        </div>
+        <div>
+          <dt>Touch</dt>
+          <dd
+            >Tap to toggle or drag left-to-right to turn ON, right-to-left to
+            turn OFF</dd
+          >
+        </div>
+        <div>
+          <dt>Keyboard</dt>
+          <dd>
+            Press 1-8 to toggle bits, <kbd>Enter</kbd> to Check Answer,
+            <kbd>Space</kbd> for Next Question
+          </dd>
+        </div>
+      </dl>
+    </footer>
+    <script src="./game.js"></script>
   </body>
 </html>
