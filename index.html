@@ -391,7 +391,7 @@
   </head>
   <body>
     <div class="game-container">
-      <h1>Binary Addition Quiz</h1>
+      <h1>Binary Addition</h1>
       <p class="target">Target: <span id="target-number">0</span></p>
       <p class="mode-toggle">
         <label>
@@ -417,8 +417,9 @@
     <div class="instructions">
       <strong>Mouse:</strong> Click buttons to toggle •
       <strong>Touch:</strong> Tap to toggle or drag left-to-right to turn ON,
-      right-to-left to turn OFF • <strong>Keyboard:</strong> Press 1-8 to toggle
-      bits
+      right-to-left to turn OFF • <strong>Keyboard:</strong> Press 1-8 to
+      toggle bits, <strong>Enter</strong> to Check Answer,
+      <strong>Space</strong> for Next Question
     </div>
 
     <script>
@@ -826,6 +827,13 @@
           if (btn) {
             toggle(btn);
           }
+        } else if (e.key === "Enter") {
+          if (!checkBtn.disabled) {
+            checkBtn.click();
+          }
+        } else if (e.key === " ") {
+          e.preventDefault();
+          nextBtn.click();
         }
       });
 
