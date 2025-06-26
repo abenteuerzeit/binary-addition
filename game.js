@@ -37,6 +37,7 @@ let currentDifficulty = "easy";
 let timeLimit = difficultyTimes[currentDifficulty];
 let timeLeft = timeLimit;
 let timerInterval = null;
+
 let correctCount = 0;
 let incorrectCount = 0;
 let streak = 0;
@@ -44,6 +45,7 @@ const correctCountEl = document.getElementById("correct-count");
 const incorrectCountEl = document.getElementById("incorrect-count");
 const streakCountEl = document.getElementById("streak-count");
 const timerBar = document.getElementById("timer-bar");
+
 const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
 const customTimeInput = document.getElementById("custom-time-input");
 const customRadio = document.getElementById("custom-radio");
@@ -267,6 +269,7 @@ bitValues.forEach((value, index) => {
 
 const startDrag = (x, y, isMouse = false) => {
   if (!startScreen.classList.contains("hidden")) return;
+
   isDragging = true;
   isMouseInteraction = isMouse;
   dragStartPos = { x, y };
@@ -326,7 +329,6 @@ const continueDrag = (x, y) => {
       }
     }
   }
-
   currentButton = btn;
 };
 
@@ -381,7 +383,12 @@ document.addEventListener("mouseup", (e) => {
 container.addEventListener(
   "touchstart",
   (e) => {
+    if (e.target === startButton) {
+      return;
+    }
+
     e.preventDefault();
+
     const touch = e.touches[0];
     startDrag(touch.clientX, touch.clientY, false);
   },
@@ -403,8 +410,15 @@ container.addEventListener(
 container.addEventListener(
   "touchend",
   (e) => {
-    if (isDragging && !isMouseInteraction) {
+    if (e.target === startButton) {
+      return;
+    }
+
+    if (isDragging) {
       e.preventDefault();
+    }
+
+    if (isDragging && !isMouseInteraction) {
       const touch = e.changedTouches[0];
       endDrag(touch.clientX, touch.clientY);
     }
@@ -436,12 +450,12 @@ const checkAnswer = () => {
       failedQuestions.push(target);
     }
   }
-  updateScoresDisplay();
+  updateStats();
   checkBtn.disabled = true;
   nextBtn.disabled = false;
 };
 
-const updateScoresDisplay = () => {
+const updateStats = () => {
   correctCountEl.textContent = correctCount;
   incorrectCountEl.textContent = incorrectCount;
   streakCountEl.textContent = streak;
@@ -449,111 +463,52 @@ const updateScoresDisplay = () => {
 
 const startTimer = () => {
   timeLeft = timeLimit;
-  updateTimerDisplay();
   timerBar.style.width = "100%";
   timerBar.style.background = "linear-gradient(90deg, #a9dc76, #78dce8)";
+  clearTimeout(timerInterval);
 
   timerInterval = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay();
-
-    if (timeLeft <= 5 && timeLeft > 0) {
-      timerBar.style.background = "linear-gradient(90deg, #FFD700, #FFA500)";
-    } else if (timeLeft <= 0) {
+    timeLeft -= 0.1;
+    if (timeLeft <= 0) {
       stopTimer();
-      feedbackEl.textContent = `Time's Up! Target was ${target}`;
-      feedbackEl.className = "feedback incorrect";
-      incorrectCount++;
-      streak = 0;
-      if (!failedQuestions.includes(target)) {
-        failedQuestions.push(target);
-      }
-      updateScoresDisplay();
-      checkBtn.disabled = true;
-      nextBtn.disabled = false;
-      timerBar.style.background = "linear-gradient(90deg, #FF6188, #C70039)";
+      timeLeft = 0;
+      checkAnswer();
     }
-  }, 1000);
+    const percentage = (timeLeft / timeLimit) * 100;
+    timerBar.style.width = `${percentage}%`;
+    if (percentage < 30) {
+      timerBar.style.background = "linear-gradient(90deg, #ff6188, #ab9df2)";
+    } else if (percentage < 60) {
+      timerBar.style.background = "linear-gradient(90deg, #fd935d, #a9dc76)";
+    }
+  }, 100);
 };
 
 const stopTimer = () => {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
+  clearInterval(timerInterval);
+  timerInterval = null;
 };
 
-const updateTimerDisplay = () => {
-  const percentage = (timeLeft / timeLimit) * 100;
-  timerBar.style.width = `${percentage}%`;
-};
-
-checkBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  checkAnswer();
-});
-
-nextBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
+startButton.addEventListener("click", () => {
+  startScreen.classList.add("hidden");
+  bitsContainer.querySelectorAll("button").forEach((btn) => {
+    btn.disabled = false;
+  });
   newQuestion();
 });
 
-hardModeCheckbox.addEventListener("change", () => {
-  container.classList.toggle("hard", hardModeCheckbox.checked);
-  modeLabel.textContent = hardModeCheckbox.checked
-    ? "Disable cortical memory (volatile)"
-    : "Enable cortical memory (volatile)";
-});
+checkBtn.addEventListener("click", checkAnswer);
 
-difficultyRadios.forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    currentDifficulty = e.target.value;
-    if (currentDifficulty === "custom") {
-      customTimeInput.disabled = false;
-      timeLimit = parseInt(customTimeInput.value) || 10;
-    } else {
-      customTimeInput.disabled = true;
-      timeLimit = difficultyTimes[currentDifficulty];
-    }
-    if (startScreen.classList.contains("hidden")) {
-      stopTimer();
-      newQuestion();
-    }
-  });
-});
-
-customTimeInput.addEventListener("change", () => {
-  if (customRadio.checked) {
-    let newTime = parseInt(customTimeInput.value);
-    if (isNaN(newTime) || newTime < 1) {
-      newTime = 10;
-      customTimeInput.value = 10;
-    } else if (newTime > 60) {
-      newTime = 60;
-      customTimeInput.value = 60;
-    }
-    timeLimit = newTime;
-    if (startScreen.classList.contains("hidden")) {
-      stopTimer();
-      newQuestion();
-    }
-  }
-});
-
-container.addEventListener("contextmenu", (e) => {
-  e.preventDefault();
-});
+nextBtn.addEventListener("click", newQuestion);
 
 document.addEventListener("keydown", (e) => {
   if (!startScreen.classList.contains("hidden")) return;
 
   if (e.key >= "1" && e.key <= "8") {
     const index = parseInt(e.key) - 1;
-    const btn = bitsContainer.children[index];
-    if (btn && !btn.disabled) {
-      toggle(btn);
+    const button = bitsContainer.querySelector(`[data-index="${index}"]`);
+    if (button) {
+      toggle(button);
     }
   } else if (e.key === "Enter") {
     if (!checkBtn.disabled) {
@@ -567,20 +522,43 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-hamburgerMenu.addEventListener("click", () => {
-  settingsMenuContent.classList.toggle("is-active");
-  hamburgerMenu.classList.toggle("is-active");
+hardModeCheckbox.addEventListener("change", (e) => {
+  if (e.target.checked) {
+    container.classList.add("hard");
+    modeLabel.textContent = "Cortical memory ENABLED (volatile)";
+  } else {
+    container.classList.remove("hard");
+    modeLabel.textContent = "Enable cortical memory (volatile)";
+  }
 });
 
-const startGame = () => {
-  startScreen.classList.add("hidden");
-  bitsContainer
-    .querySelectorAll("button")
-    .forEach((btn) => (btn.disabled = false));
-  checkBtn.disabled = false;
-  newQuestion();
-};
+difficultyRadios.forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    currentDifficulty = e.target.value;
+    if (currentDifficulty === "custom") {
+      customTimeInput.disabled = false;
+      timeLimit = parseInt(customTimeInput.value);
+    } else {
+      customTimeInput.disabled = true;
+      timeLimit = difficultyTimes[currentDifficulty];
+    }
+  });
+});
 
-startButton.addEventListener("click", startGame);
+customTimeInput.addEventListener("input", (e) => {
+  let value = parseInt(e.target.value);
+  if (isNaN(value) || value < 1) {
+    value = 1;
+  } else if (value > 60) {
+    value = 60;
+  }
+  e.target.value = value;
+  timeLimit = value;
+});
 
-updateScoresDisplay();
+hamburgerMenu.addEventListener("click", () => {
+  hamburgerMenu.classList.toggle("is-active");
+  settingsMenuContent.classList.toggle("is-active");
+});
+
+updateStats();
