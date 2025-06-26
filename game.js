@@ -37,6 +37,7 @@ let currentDifficulty = "easy";
 let timeLimit = difficultyTimes[currentDifficulty];
 let timeLeft = timeLimit;
 let timerInterval = null;
+let gameWasRunningBeforePause = false;
 
 let correctCount = 0;
 let incorrectCount = 0;
@@ -46,7 +47,9 @@ const incorrectCountEl = document.getElementById("incorrect-count");
 const streakCountEl = document.getElementById("streak-count");
 const timerBar = document.getElementById("timer-bar");
 
-const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+const difficultyRadios = document.querySelectorAll(
+  'input[name="difficulty"]',
+);
 const customTimeInput = document.getElementById("custom-time-input");
 const customRadio = document.getElementById("custom-radio");
 
@@ -55,9 +58,135 @@ let questionsSinceLastFailed = 0;
 const RETRY_FAILED_AFTER_N_NEW = 3;
 
 const hamburgerMenu = document.getElementById("hamburger-menu");
-const settingsMenuContent = document.getElementById("settings-menu-content");
+const settingsMenuContent = document.getElementById(
+  "settings-menu-content",
+);
 const startScreen = document.getElementById("start-screen");
 const startButton = document.getElementById("start-button");
+
+const toggleUiButton = document.createElement('button');
+toggleUiButton.id = 'toggle-ui-button';
+toggleUiButton.className = 'toggle-ui-button';
+toggleUiButton.innerHTML = '⚙️ Menu';
+document.body.prepend(toggleUiButton);
+
+toggleUiButton.addEventListener('click', (e) => {
+  if (!isDraggingButton && !hasMovedDuringButtonInteraction) {
+    e.preventDefault();
+    toggleUiLogic();
+  }
+});
+
+let isDraggingButton = false;
+let dragStartX, dragStartY;
+let initialButtonX, initialButtonY;
+let hasMovedDuringButtonInteraction = false;
+
+const setInitialButtonPosition = () => {
+  if (window.getComputedStyle(toggleUiButton).display !== 'none') {
+    const bodyRect = document.body.getBoundingClientRect();
+    const buttonRect = toggleUiButton.getBoundingClientRect();
+
+    let initialLeft = bodyRect.width - buttonRect.width - 20;
+    let initialTop = bodyRect.height - buttonRect.height - 20;
+
+    let newLeft = Math.max(0, Math.min(initialLeft, bodyRect.width - buttonRect.width));
+    let newTop = Math.max(0, Math.min(initialTop, bodyRect.height - buttonRect.height));
+
+    toggleUiButton.style.left = `${newLeft}px`;
+    toggleUiButton.style.top = `${newTop}px`;
+  }
+};
+
+const handleButtonDragStart = (e) => {
+  hasMovedDuringButtonInteraction = false;
+  isDraggingButton = true;
+
+  const clientX = e.clientX || e.touches[0].clientX;
+  const clientY = e.clientY || e.touches[0].clientY;
+
+  const buttonRect = toggleUiButton.getBoundingClientRect();
+  initialButtonX = buttonRect.left;
+  initialButtonY = buttonRect.top;
+
+  dragStartX = clientX;
+  dragStartY = clientY;
+
+  document.addEventListener('mousemove', handleButtonDragMove);
+  document.addEventListener('mouseup', handleButtonDragEnd);
+  document.addEventListener('touchmove', handleButtonDragMove, { passive: false });
+  document.addEventListener('touchend', handleButtonDragEnd);
+  document.addEventListener('touchcancel', handleButtonDragEnd);
+};
+
+const handleButtonDragMove = (e) => {
+  if (!isDraggingButton) return;
+
+  const clientX = e.clientX || e.touches[0].clientX;
+  const clientY = e.clientY || e.touches[0].clientY;
+
+  const deltaX = clientX - dragStartX;
+  const deltaY = clientY - dragStartY;
+
+  const movementThreshold = 5;
+
+  if (Math.abs(deltaX) > movementThreshold || Math.abs(deltaY) > movementThreshold) {
+    hasMovedDuringButtonInteraction = true;
+    e.preventDefault();
+    e.stopPropagation();
+    toggleUiButton.style.cursor = 'grabbing';
+  }
+
+  if (hasMovedDuringButtonInteraction) {
+    let newLeft = initialButtonX + deltaX;
+    let newTop = initialButtonY + deltaY;
+
+    const maxX = window.innerWidth - toggleUiButton.offsetWidth;
+    const maxY = window.innerHeight - toggleUiButton.offsetHeight;
+
+    newLeft = Math.max(0, Math.min(newLeft, maxX));
+    newTop = Math.max(0, Math.min(newTop, maxY));
+
+    toggleUiButton.style.left = `${newLeft}px`;
+    toggleUiButton.style.top = `${newTop}px`;
+  }
+};
+
+const handleButtonDragEnd = () => {
+  isDraggingButton = false;
+  toggleUiButton.style.cursor = 'grab';
+
+  document.removeEventListener('mousemove', handleButtonDragMove);
+  document.removeEventListener('mouseup', handleButtonDragEnd);
+  document.removeEventListener('touchmove', handleButtonDragMove);
+  document.removeEventListener('touchend', handleButtonDragEnd);
+  document.removeEventListener('touchcancel', handleButtonDragEnd);
+
+  hasMovedDuringButtonInteraction = false;
+};
+
+toggleUiButton.addEventListener('mousedown', handleButtonDragStart);
+toggleUiButton.addEventListener('touchstart', handleButtonDragStart, { passive: false });
+
+const toggleUiLogic = () => {
+  const isShowingFullUI = document.body.classList.toggle('show-full-ui');
+
+  if (isShowingFullUI) {
+    if (timerInterval) {
+      gameWasRunningBeforePause = true;
+      stopTimer();
+    } else {
+      gameWasRunningBeforePause = false;
+    }
+    toggleUiButton.innerHTML = '🎮 Back to Game';
+  } else {
+    if (gameWasRunningBeforePause) {
+      startTimer();
+    }
+    toggleUiButton.innerHTML = '⚙️ Menu';
+  }
+};
+
 
 const resizeCanvas = () => {
   canvas.width = container.clientWidth;
@@ -125,7 +254,9 @@ const startTrailFade = () => {
 
   const fadeTrail = () => {
     const now = Date.now();
-    trailPoints = trailPoints.filter((point) => now - point.timestamp < 2000);
+    trailPoints = trailPoints.filter(
+      (point) => now - point.timestamp < 2000,
+    );
 
     if (trailPoints.length > 0) {
       drawTrail();
@@ -249,7 +380,8 @@ bitValues.forEach((value, index) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isDragging) {
+    const clickDuration = Date.now() - touchStartTime;
+    if (clickDuration < 250) {
       toggle(btn);
     }
   });
@@ -339,6 +471,7 @@ const endDrag = (x, y) => {
   const btn = getButtonAt(x, y);
 
   if (
+    !isMouseInteraction &&
     interactionDuration < 200 &&
     btn &&
     btn === currentButton &&
@@ -383,7 +516,7 @@ document.addEventListener("mouseup", (e) => {
 container.addEventListener(
   "touchstart",
   (e) => {
-    if (e.target === startButton) {
+    if (e.target === startButton || e.target === checkBtn || e.target === nextBtn || e.target === toggleUiButton) {
       return;
     }
 
@@ -410,7 +543,7 @@ container.addEventListener(
 container.addEventListener(
   "touchend",
   (e) => {
-    if (e.target === startButton) {
+    if (e.target === startButton || e.target === checkBtn || e.target === nextBtn || e.target === toggleUiButton) {
       return;
     }
 
@@ -559,6 +692,28 @@ customTimeInput.addEventListener("input", (e) => {
 hamburgerMenu.addEventListener("click", () => {
   hamburgerMenu.classList.toggle("is-active");
   settingsMenuContent.classList.toggle("is-active");
+});
+
+const mediaQuery = window.matchMedia('(max-width: 499px)');
+
+const handleMediaQueryChange = (e) => {
+  if (e.matches) {
+    toggleUiButton.style.display = 'block';
+    if (!toggleUiButton.dataset.positionSet || toggleUiButton.dataset.positionSet === 'false') {
+      setInitialButtonPosition();
+      toggleUiButton.dataset.positionSet = 'true';
+    }
+  } else {
+    toggleUiButton.style.display = 'none';
+    document.body.classList.remove('show-full-ui');
+    toggleUiButton.dataset.positionSet = 'false';
+  }
+};
+
+mediaQuery.addEventListener('change', handleMediaQueryChange);
+
+document.addEventListener('DOMContentLoaded', () => {
+  handleMediaQueryChange(mediaQuery);
 });
 
 updateStats();

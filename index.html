@@ -1,138 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no"
-    />
-    <title>Binary Addition Game</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
-    />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-   <body>
-    <div class="game-navbar-header">
-      <h1 id="main-title">Binary Addition Game</h1>
-      <div class="navbar-right-section">
-        <button class="hamburger-menu-icon" id="hamburger-menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
-      <div class="settings-menu-content" id="settings-menu-content">
-        <div class="difficulty-selection">
-          <label>
-            <input type="radio" name="difficulty" value="easy" checked />
-            <span>Easy (15s)</span>
-          </label>
-          <label>
-            <input type="radio" name="difficulty" value="normal" />
-            <span>Normal (10s)</span>
-          </label>
-          <label>
-            <input type="radio" name="difficulty" value="hard" />
-            <span>Hard (5s)</span>
-          </label>
-          <label>
-            <input type="radio" name="difficulty" value="god" />
-            <span>10xEngineer (3s)</span>
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="difficulty"
-              value="custom"
-              id="custom-radio"
-            />
-            <span>Custom</span>
-            <input
-              type="number"
-              id="custom-time-input"
-              min="1"
-              max="60"
-              value="10"
-              disabled
-            />
-            <span>s</span>
-          </label>
-        </div>
-        <p class="mode-toggle">
-          <label title="Hide the sum and use your brain!">
-            <input type="checkbox" id="hard-mode" />
-            <span id="mode-label">Enable cortical memory (volatile)</span>
-          </label>
-        </p>
-      </div>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Binary Addition Game</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="game-navbar-header">
+    <h1 id="main-title">Binary Addition Game</h1>
+    <div class="navbar-right-section">
+      <button class="hamburger-menu-icon" id="hamburger-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
-    <div class="game-container">
-      <div class="start-screen" id="start-screen">
-        <h2>Welcome to Binary Addition!</h2>
-        <p>
-          Test your skills in converting binary to decimal. Select your
-          difficulty and start.
-        </p>
-        <button id="start-button">Start Game</button>
+    <div class="settings-menu-content" id="settings-menu-content">
+      <div class="difficulty-selection">
+        <label>
+          <input type="radio" name="difficulty" value="easy" checked />
+          <span>Easy (15s)</span>
+        </label>
+        <label>
+          <input type="radio" name="difficulty" value="normal" />
+          <span>Normal (10s)</span>
+        </label>
+        <label>
+          <input type="radio" name="difficulty" value="hard" />
+          <span>Hard (5s)</span>
+        </label>
+        <label>
+          <input type="radio" name="difficulty" value="god" />
+          <span>10xEngineer (3s)</span>
+        </label>
+        <label>
+          <input type="radio" name="difficulty" value="custom" id="custom-radio" />
+          <span>Custom</span>
+          <input type="number" id="custom-time-input" min="1" max="60" value="10" disabled />
+          <span>s</span>
+        </label>
       </div>
-
-      <div class="timer-bar-container">
-        <div id="timer-bar"></div>
-      </div>
-
-      <p class="target">Target: <span id="target-number">0</span></p>
-
-      <canvas id="trail-canvas"></canvas>
-
-      <div class="drag-indicator" id="drag-indicator">→ L-R</div>
-
-      <div class="bits"></div>
-
-      <p class="sum">Your Sum: <span id="current-sum">0</span></p>
-      <div class="controls">
-        <button id="check-btn" disabled>Check Answer</button>
-        <button id="next-btn" disabled>Next Question</button>
-      </div>
-      <div class="stats-container">
-        <div class="stat correct-count" title="Correct Answers">
-          ✅ <span id="correct-count">0</span>
-        </div>
-        <div class="stat incorrect-count" title="Incorrect Answers">
-          ❌ <span id="incorrect-count">0</span>
-        </div>
-        <div class="stat streak-count" title="Current Streak">
-          🔥 <span id="streak-count">0</span>
-        </div>
-      </div>
-
-      <p class="feedback" id="feedback"></p>
+      <p class="mode-toggle">
+        <label title="Hide the sum and use your brain!">
+          <input type="checkbox" id="hard-mode" />
+          <span id="mode-label">Enable cortical memory (volatile)</span>
+        </label>
+      </p>
+    </div>
+  </div>
+  <div class="game-container">
+    <div class="start-screen" id="start-screen">
+      <h2>Welcome to Binary Addition!</h2>
+      <p>
+        Test your skills in converting binary to decimal. Select your
+        difficulty and start.
+      </p>
+      <button id="start-button">Start Game</button>
     </div>
 
-    <footer>
-      <dl class="instructions">
-        <div>
-          <dt>Mouse</dt>
-          <dd>Click buttons to toggle</dd>
-        </div>
-        <div>
-          <dt>Touch</dt>
-          <dd
-            >Tap to toggle or drag left-to-right to turn ON, right-to-left to
-            turn OFF</dd
-          >
-        </div>
-        <div>
-          <dt>Keyboard</dt>
-          <dd>
-            Press 1-8 to toggle bits, <kbd>Enter</kbd> to Check Answer,
-            <kbd>Space</kbd> for Next Question
-          </dd>
-        </div>
-      </dl>
-    </footer>
-    <script src="./game.js"></script>
-  </body>
+    <div class="timer-bar-container">
+      <div id="timer-bar"></div>
+    </div>
+
+    <p class="target">Target: <span id="target-number">0</span></p>
+
+    <canvas id="trail-canvas"></canvas>
+
+    <div class="drag-indicator" id="drag-indicator">→ L-R</div>
+
+    <div class="bits"></div>
+
+    <p class="sum">Your Sum: <span id="current-sum">0</span></p>
+    <div class="controls">
+      <button id="check-btn" disabled>Check Answer</button>
+      <button id="next-btn" disabled>Next Question</button>
+    </div>
+    <div class="stats-container">
+      <div class="stat correct-count" title="Correct Answers">
+        ✅ <span id="correct-count">0</span>
+      </div>
+      <div class="stat incorrect-count" title="Incorrect Answers">
+        ❌ <span id="incorrect-count">0</span>
+      </div>
+      <div class="stat streak-count" title="Current Streak">
+        🔥 <span id="streak-count">0</span>
+      </div>
+    </div>
+
+    <p class="feedback" id="feedback"></p>
+  </div>
+
+  <footer>
+    <dl class="instructions">
+      <div>
+        <dt>Mouse</dt>
+        <dd>Click buttons to toggle</dd>
+      </div>
+      <div>
+        <dt>Touch</dt>
+        <dd>Tap to toggle or drag left-to-right to turn ON, right-to-left to
+          turn OFF</dd>
+      </div>
+      <div>
+        <dt>Keyboard</dt>
+        <dd>
+          Press 1-8 to toggle bits, <kbd>Enter</kbd> to Check Answer,
+          <kbd>Space</kbd> for Next Question
+        </dd>
+      </div>
+    </dl>
+  </footer>
+  <script src="./game.js"></script>
+</body>
+
 </html>
