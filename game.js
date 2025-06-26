@@ -311,7 +311,7 @@ const detectDragDirection = (currentPos) => {
   if (!dragStartPos || trailPoints.length < 2) return null;
 
   const deltaX = currentPos.x - dragStartPos.x;
-  const threshold = isMouseInteraction ? 20 : 15;
+  const threshold = isMouseInteraction ? 15 : 10;
 
   if (Math.abs(deltaX) < threshold) return null;
 
@@ -432,22 +432,49 @@ const continueDrag = (x, y) => {
 
   clearHoverStates();
 
-  if (btn && btn !== lastButton && dragDirection) {
-    if (dragDirection === "left-to-right") {
-      if (!btn.classList.contains("active")) {
+  if (btn && dragDirection) {
+    if (btn !== lastButton) {
+      if (dragDirection === "left-to-right") {
+        if (!btn.classList.contains("active")) {
+          toggle(btn);
+          dragHistory.push(btn);
+        }
+      } else if (dragDirection === "right-to-left") {
+        if (btn.classList.contains("active")) {
+          toggle(btn);
+          const historyIndex = dragHistory.indexOf(btn);
+          if (historyIndex > -1) {
+            dragHistory.splice(historyIndex, 1);
+          }
+        }
+      }
+      lastButton = btn;
+    }
+  }
+  
+  if (btn && !dragDirection && dragStartPos) {
+    const deltaX = currentPos.x - dragStartPos.x;
+    const deltaY = currentPos.y - dragStartPos.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    if (distance > 10) {
+      const preliminaryDirection = deltaX > 0 ? "left-to-right" : "right-to-left";
+      dragDirection = preliminaryDirection;
+      updateDragIndicator(dragDirection);
+      
+      if (dragDirection === "left-to-right" && !btn.classList.contains("active")) {
         toggle(btn);
         dragHistory.push(btn);
-      }
-    } else if (dragDirection === "right-to-left") {
-      if (btn.classList.contains("active")) {
+        lastButton = btn;
+      } else if (dragDirection === "right-to-left" && btn.classList.contains("active")) {
         toggle(btn);
         const historyIndex = dragHistory.indexOf(btn);
         if (historyIndex > -1) {
           dragHistory.splice(historyIndex, 1);
         }
+        lastButton = btn;
       }
     }
-    lastButton = btn;
   }
 
   if (btn && dragDirection) {
@@ -461,6 +488,7 @@ const continueDrag = (x, y) => {
       }
     }
   }
+  
   currentButton = btn;
 };
 
